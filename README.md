@@ -94,6 +94,7 @@ $post = $client->post()
     ->fail(fn(string $error) => var_dump($error)) // handle error
 
     ->timeout(10); // timeout
+
 $post->async(); // async run
 $post->run(); // sync run (wait compilation)
 ```

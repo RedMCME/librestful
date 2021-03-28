@@ -1,5 +1,5 @@
 # librestful
-librestful is a virion for [PocketMine](https://github.com/pmmp/PocketMine-MP) servers that make **easier**, **readable** and **async** code for rest requests.
+librestful is a virion for [PocketMine](https://github.com/pmmp/PocketMine-MP) servers that make **easier**, **readable** code for **async** rest requests.
 
 ## Example
 ```php
@@ -14,6 +14,7 @@ $client = librestful::create(
         "Authorization" => "Bearer API_KEY"
     ]
 );
+
 $client->post(
     "player/ban",
     [
@@ -81,6 +82,7 @@ $client = librestful::create(
     "http://api.redmc.me", // base url 
     ["Authorization" => "Bearer API_KEY"] // addinational headers for all requests
 );
+
 // post
 $client->post(
     "player/ban", // endpoint

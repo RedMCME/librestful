@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace redmc\librestful;
 
 use pocketmine\scheduler\AsyncTask;
+use pocketmine\Server;
 use redmc\librestful\request\Request;
 
 final class RequestTask extends AsyncTask {
@@ -46,7 +47,7 @@ final class RequestTask extends AsyncTask {
             }
         } else {
             if($this->handle !== null) {
-                ($this->handle)($result["data"]);
+                ($this->handle)(new Response($result["data"], $this->request->getPlayers()));
             }
         }
     }

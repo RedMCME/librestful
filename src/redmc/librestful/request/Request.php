@@ -8,21 +8,20 @@ use pocketmine\Server;
 use pocketmine\utils\InternetRequestResult;
 use redmc\librestful\Method;
 use redmc\librestful\RequestTask;
+use redmc\librestful\Response;
 
 abstract class Request {
-    protected Server $server;
-
     protected string $baseURL;
     protected string $endpoint;
 
     protected int $timeout = 10;
     protected array $headers;
+    protected array $players = [];
 
     protected ?\Closure $handle = null;
     protected ?\Closure $onFail = null;
 
-    public function __construct(Server $server, string $baseURL, array $headers = []) {
-        $this->server = $server;
+    public function __construct(string $baseURL, array $headers = []) {
         $this->baseURL = $baseURL;
         $this->headers = $headers;
     }
@@ -30,7 +29,7 @@ abstract class Request {
     abstract public function getMethod(): Method;
 
     public function async(): void {
-        $this->server->getAsyncPool()->submitTask(new RequestTask($this, $this->handle, $this->onFail));
+        Server::getInstance()->getAsyncPool()->submitTask(new RequestTask($this, $this->handle, $this->onFail));
     }
 
     public function run(): void {
@@ -42,7 +41,7 @@ abstract class Request {
             }
         } else {
             if($this->handle !== null) {
-                ($this->handle)($result);
+                ($this->handle)(new Response($result, $this->players));
             }
         }
     }
@@ -70,6 +69,16 @@ abstract class Request {
         return $this;
     }
 
+    public function player(string $username): self {
+        $this->players[] = $username;
+        return $this;
+    }
+
+    public function players(array $players): self {
+        $this->players[] = array_merge($this->players, $players);
+        return $this;
+    }
+
     public function result(?\Closure $handle): self {
         $this->handle = $handle;
         return $this;
@@ -88,12 +97,17 @@ abstract class Request {
         return $this->onFail;
     }
 
+    public function getPlayers(): array{
+        return $this->players;
+    }
+
     public function __serialize(): array {
         return [
             "timeout" => $this->timeout,
             "baseURL" => $this->baseURL,
             "endpoint" => $this->endpoint,
             "headers" => $this->headers,
+            "players" => $this->players
         ];
     }
 }

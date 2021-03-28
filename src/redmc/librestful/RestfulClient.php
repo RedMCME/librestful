@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace redmc\librestful;
 
 use pocketmine\Server;
+use redmc\librestful\request\Get;
+use redmc\librestful\request\Post;
 
 class RestfulClient {
     protected Server $server;
@@ -17,28 +19,11 @@ class RestfulClient {
         $this->headers = $headers;
     }
 
-    public function get(string $endpoint, ?\Closure $handle = null, ?\Closure $onFail = null, int $timeout = 10, array $headers = []): void{
-        $this->server->getAsyncPool()->submitTask(new QueryTask(
-            QueryTask::METHOD_GET, $this->baseURL . $endpoint, $timeout, $this->fixedHeaders($headers), [], $handle, $onFail
-            )
-        );
+    public function get(): Get{
+        return new Get($this->server, $this->baseURL, $this->headers);
     }
 
-    public function post(string $endpoint, array $args = [], ?\Closure $handle = null, ?\Closure $onFail = null, int $timeout = 10, array $headers = []): void{
-        $this->server->getAsyncPool()->submitTask(new QueryTask(
-                QueryTask::METHOD_POST, $this->baseURL . $endpoint, $timeout, $this->fixedHeaders($headers), $args, $handle, $onFail
-            )
-        );
-    }
-
-    private function fixedHeaders(array $headers): array{
-        $headers = array_merge($this->headers, $headers);
-        $fixed = [];
-
-        foreach($headers as $key => $value){
-            $fixed[] = sprintf("%s: %s", $key, $value);
-        }
-
-        return $fixed;
+    public function post(): Post{
+        return new Post($this->server, $this->baseURL, $this->headers);
     }
 }

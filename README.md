@@ -15,19 +15,13 @@ $client = librestful::create(
     ]
 );
 
-$client->post(
-    "player/ban",
-    [
-        "username" => "eren5960",
-        "reason" => "hack"
-    ],
-    function(InternetRequestResult $result) {
-        var_dump($result);
-    },
-    function(string $error) {
-        var_dump($error);
-    },
-);
+$client->post()
+    ->endpoint("player/ban")
+    ->field("username", "eren5960")
+    ->field("reason", "hack")
+    ->result(fn(InternetRequestResult $result) => var_dump($result))
+    ->fail(fn(string $error) => var_dump($error))
+    ->async();
 ```
 
 ## Usage
@@ -54,22 +48,22 @@ $client = librestful::create(
 );
 
 $playerName = "eren5960"; // example
-$client->get(
-    "player/info/" . $playerName, // endpoint
-    function(InternetRequestResult $result) { // on response
-        // handle result
-        var_dump($result);
-    },
-    function(string $error) { // on fail
-        // handle error
-        var_dump($error);
-    },
-    10, // timeout, default 10
-    [] // custom headers, like: ["Connection" => "keep-alive"]
-);
+$get = $client->get()
+    ->endpoint("player/info/" . $playerName) //endpoint
+   
+    ->result(fn(InternetRequestResult $result) => var_dump($result)) // handle result
+    ->fail(fn(string $error) => var_dump($error)) // handle error
+
+    ->header("Cookie", "Key=value") // one header usage
+    ->headers(["Connection" => "keep-alive"]) // multiple headers usage
+
+    ->timeout(10); // timeout
+
+$get->async(); // async run
+$get->run(); // sync run (wait compilation)
 ```
 
-### POST requests
+### POST Requests
 ```php
 // import
 use redmc\librestful\librestful;
@@ -84,21 +78,22 @@ $client = librestful::create(
 );
 
 // post
-$client->post(
-    "player/ban", // endpoint
-    [
-        "username" => "eren5960",
-        "reason" => "hack"
-    ], // post args (fields, data)
-    function(InternetRequestResult $result) { // on response
-        // handle result
-        var_dump($result);
-    },
-    function(string $error) { // on fail
-        // handle error
-        var_dump($error);
-    },
-    10, // timeout, default 10
-    [] // custom headers, like: ["Connection" => "keep-alive"]
-);
+$post = $client->post()
+    ->endpoint("player/ban/") //endpoint
+
+    ->field("username", "eren5960") // one field usage
+    ->fields([
+        "reason" => "hack",
+        "time" => strtotime("+1 months") 
+    ]) // multiple field usage
+
+    ->header("Cookie", "Key=value") // one header usage
+    ->headers(["Connection" => "keep-alive"]) // multiple headers usage
+
+    ->result(fn(InternetRequestResult $result) => var_dump($result)) // handle result
+    ->fail(fn(string $error) => var_dump($error)) // handle error
+
+    ->timeout(10); // timeout
+$post->async(); // async run
+$post->run(); // sync run (wait compilation)
 ```

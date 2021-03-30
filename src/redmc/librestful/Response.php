@@ -12,7 +12,7 @@ class Response{
     protected InternetRequestResult $result;
 
     /** @var Player[] */
-    protected array $onlinePlayers = [];
+    public array $onlinePlayers = [];
     /** @var string[] */
     protected array $players = [];
 
@@ -37,7 +37,7 @@ class Response{
     }
 
     public function player(string $username): ?Player{
-        return $this->playersOnline[$username] ?? null;
+        return $this->onlinePlayers[$username] ?? null;
     }
 
     public function result(): InternetRequestResult{

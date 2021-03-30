@@ -47,11 +47,11 @@ $playerName = "eren5960"; // example
 $get = $client->get()
     ->endpoint("player/can_access/" . $playerName) //endpoint
 
-        ->field("where", "win") // one parameter usage
-        ->fields([
-            "format" => "json",
-            "period" => "monthly"
-        ]) // multiple parameter usage
+    ->param("where", "win") // one parameter usage
+    ->params([
+        "format" => "json",
+        "period" => "monthly"
+    ]) // multiple parameter usage
 
     ->player($playerName) // use player instance on result
     ->result(function(Response $result) use($playerName){

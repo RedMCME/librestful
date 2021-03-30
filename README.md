@@ -106,3 +106,28 @@ $post = $client->post()
 $post->async(); // async run
 $post->run(); // sync run (wait compilation)
 ```
+
+## More Examples
+
+### Minecraft Pocket Server Get List of Voters
+```php
+use redmc\librestful\librestful;
+use redmc\librestful\Response;
+
+$client = librestful::create("https://minecraftpocket-servers.com/api");
+
+$client
+    ->get()
+
+    ->param("object", "servers")
+    ->param("element", "voters")
+    ->param("key", "Your API Key")
+    ->param("month", "current")
+    ->param("format", "json")
+
+    ->result(fn(Response $response) => var_dump(json_decode($response->body(), true)))
+    ->fail(fn(string $error) => var_dump("unable to get monthly voters: " . $error))
+
+    ->timeout(10)
+    ->async();
+```

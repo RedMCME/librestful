@@ -12,10 +12,10 @@ use redmc\librestful\Response;
 
 abstract class Request {
     protected string $baseURL;
-    protected string $endpoint;
+    protected string $endpoint = '';
 
     protected int $timeout = 10;
-    protected array $headers;
+    protected array $headers = [];
     protected array $players = [];
 
     protected ?\Closure $handle = null;

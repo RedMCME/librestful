@@ -16,7 +16,13 @@ abstract class Request {
 
     protected int $timeout = 10;
     protected array $headers = [];
+    /** @var string[] */
     protected array $players = [];
+    /** @var int[] */
+    protected array $worlds = [];
+
+    protected bool $abortIfNoPlayer = false;
+    protected bool $abortIfNoWorld = false;
 
     protected ?\Closure $handle = null;
     protected ?\Closure $onFail = null;
@@ -41,7 +47,7 @@ abstract class Request {
             }
         } else {
             if($this->handle !== null) {
-                ($this->handle)(new Response($result, $this->players));
+                ($this->handle)(new Response($result, $this->players, $this->worlds));
             }
         }
     }
@@ -79,6 +85,11 @@ abstract class Request {
         return $this;
     }
 
+    public function world(int $worldId): self {
+        $this->worlds[] = $worldId;
+        return $this;
+    }
+
     public function result(?\Closure $handle): self {
         $this->handle = $handle;
         return $this;
@@ -101,13 +112,31 @@ abstract class Request {
         return $this->players;
     }
 
+    public function getWorlds(): array{
+        return $this->worlds;
+    }
+
+    public function abortIfNoPlayer(bool $state = true): self{
+        $this->abortIfNoPlayer = $state;
+        return $this;
+    }
+
+    public function abortIfNoWorld(bool $state = true): self{
+        $this->abortIfNoWorld = $state;
+        return $this;
+    }
+
+    public function willAbortIfNoWorld(): bool{ return $this->abortIfNoWorld; }
+    public function willAbortIfNoPlayer(): bool{ return $this->abortIfNoPlayer; }
+
     public function __serialize(): array {
         return [
             "timeout" => $this->timeout,
             "baseURL" => $this->baseURL,
             "endpoint" => $this->endpoint,
             "headers" => $this->headers,
-            "players" => $this->players
+            "players" => $this->players,
+            "worlds" => $this->worlds
         ];
     }
 }

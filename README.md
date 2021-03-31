@@ -67,7 +67,7 @@ $get = $client->get()
     ->header("Cookie", "Key=value") // one header usage
     ->headers(["Connection" => "keep-alive"]) // multiple headers usage
 
-    ->timeout(10); // timeout
+    ->timeout(5); // timeout, default 10
 
 $get->async(); // async run
 $get->run(); // sync run (wait compilation)
@@ -101,7 +101,7 @@ $post = $client->post()
     ->result(fn(Response $result) => var_dump($result)) // handle result
     ->fail(fn(string $error) => var_dump($error)) // handle error
 
-    ->timeout(10); // timeout
+    ->timeout(5); // timeout, default 10
 
 $post->async(); // async run
 $post->run(); // sync run (wait compilation)
@@ -128,6 +128,6 @@ $client
     ->result(fn(Response $response) => var_dump(json_decode($response->body(), true)))
     ->fail(fn(string $error) => var_dump("unable to get monthly voters: " . $error))
 
-    ->timeout(10)
+    ->timeout(15)
     ->async();
 ```

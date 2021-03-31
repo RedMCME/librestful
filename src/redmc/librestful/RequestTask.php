@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace redmc\librestful;
 
 use pocketmine\scheduler\AsyncTask;
-use pocketmine\Server;
 use redmc\librestful\request\Request;
 
 final class RequestTask extends AsyncTask {
@@ -47,7 +46,13 @@ final class RequestTask extends AsyncTask {
             }
         } else {
             if($this->handle !== null) {
-                ($this->handle)(new Response($result["data"], $this->request->getPlayers()));
+                $response = new Response($result["data"], $this->request->getPlayers(), $this->request->getWorlds());
+                if (
+                    ($this->request->willAbortIfNoPlayer() && count($response->onlinePlayers()) === 0)
+                    ||
+                    ($this->request->willAbortIfNoWorld() && count($response->loadedWorlds()) === 0)
+                ) return;
+                ($this->handle)($response);
             }
         }
     }

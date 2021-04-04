@@ -8,17 +8,16 @@ use pocketmine\scheduler\AsyncTask;
 use redmc\librestful\request\Request;
 
 final class RequestTask extends AsyncTask {
-    public const METHOD_GET = 0;
-    public const METHOD_POST = 1;
 
     private Request $request;
-    private ?\Closure $handle;
-    private ?\Closure $onFail;
+
+    public const HANDLE = "handle";
+    public const FAIL = "fail";
 
     public function __construct(Request $request, ?\Closure $handle, ?\Closure $onFail) {
         $this->request = $request;
-        $this->handle = $handle;
-        $this->onFail = $onFail;
+        $this->storeLocal(self::HANDLE, $handle);
+        $this->storeLocal(self::FAIL, $onFail);
     }
 
     public function onRun(): void {
@@ -40,20 +39,26 @@ final class RequestTask extends AsyncTask {
     public function onCompletion(): void {
         $result = $this->getResult();
 
+        $handle = null;
+        try {
+            $handle = $this->fetchLocal(self::HANDLE);
+        } catch(\Exception $e){}
+
+        $fail = null;
+        try {
+            $fail = $this->fetchLocal(self::FAIL);
+        } catch(\Exception $e){}
+
         if(isset($result["error"])) {
-            if($this->onFail !== null) {
-                ($this->onFail)($result["error"]);
+            if($fail !== null) {
+                ($fail)($result["error"]);
             }
-        } else {
-            if($this->handle !== null) {
-                $response = new Response($result["data"], $this->request->getPlayers(), $this->request->getWorlds());
-                if (
-                    ($this->request->willAbortIfNoPlayer() && count($response->onlinePlayers()) === 0)
-                    ||
-                    ($this->request->willAbortIfNoWorld() && count($response->loadedWorlds()) === 0)
-                ) return;
-                ($this->handle)($response);
-            }
+            return;
+        }
+
+        if($handle !== null) {
+            $response = new Response($result["data"]);
+            ($handle)($response);
         }
     }
 }

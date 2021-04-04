@@ -12,34 +12,8 @@ use pocketmine\world\World;
 class Response{
     protected InternetRequestResult $result;
 
-    /** @var Player[] */
-    public array $onlinePlayers = [];
-    /** @var string[] */
-    protected array $players = [];
-
-    /** @var World[] */
-    public array $loadedWorlds = [];
-    /** @var int[] */
-    protected array $worlds = [];
-
-    public function __construct(InternetRequestResult $result, array $players = [], array $worlds = []) {
+    public function __construct(InternetRequestResult $result) {
         $this->result = $result;
-        $this->players = $players;
-        $this->worlds = $worlds;
-
-        foreach($players as $username){
-            $player = Server::getInstance()->getPlayerExact($username);
-            if ($player !== null && $player->isOnline()) {
-                $this->onlinePlayers[$username] = $player;
-            }
-        }
-
-        foreach($worlds as $id){
-            $world = Server::getInstance()->getWorldManager()->getWorld($id);
-            if ($world !== null && !$world->isClosed()) {
-                $this->loadedWorlds[$id] = $world;
-            }
-        }
     }
 
     public function onlinePlayers(): array{
@@ -52,14 +26,6 @@ class Response{
 
     public function player(string $username): ?Player{
         return $this->onlinePlayers[$username] ?? null;
-    }
-
-    public function loadedWorlds(): array{
-        return $this->loadedWorlds;
-    }
-
-    public function worlds(): array{
-        return $this->worlds;
     }
 
     public function world(int $id): ?World{

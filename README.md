@@ -43,7 +43,7 @@ $client = librestful::create(
     ["Authorization" => "Bearer API_KEY"] // addinational headers for all requests
 );
 
-$playerName = "eren5960"; // example
+$player = Player; // a player
 $get = $client->get()
     ->endpoint("player/can_access/" . $playerName) //endpoint
 
@@ -53,12 +53,10 @@ $get = $client->get()
         "period" => "monthly"
     ]) // multiple parameter usage
 
-    ->player($playerName) // use player instance on result
-    ->result(function(Response $result) use($playerName){
-        $player = $result->player($playerName);
-        if ($player === null) return;
+    ->result(function(Response $result) use($player){
+        if (!$player->isOnline()) return;
         
-        if ($result->code() === 401) { // unauhorized, this an example
+        if ($result->code() === 401) { // unauthorized, this an example
             $player->kick("unauthorized");
         }
     }) // handle result
@@ -70,6 +68,7 @@ $get = $client->get()
     ->timeout(5); // timeout, default 10
 
 $get->async(); // async run
+//or
 $get->run(); // sync run (wait compilation)
 ```
 
@@ -104,6 +103,7 @@ $post = $client->post()
     ->timeout(5); // timeout, default 10
 
 $post->async(); // async run
+//or
 $post->run(); // sync run (wait compilation)
 ```
 

@@ -130,7 +130,7 @@ use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
 
-$client = librestful::create("https://minecraftpocket-servers.com/api");
+$client = librestful::create($plugin, "https://minecraftpocket-servers.com/api");
 
 $client
     ->get()

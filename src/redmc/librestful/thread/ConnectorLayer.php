@@ -32,7 +32,7 @@ class ConnectorLayer {
     public function __construct(Plugin $plugin, RequestThread $requestThread, bool $logRequests = false) {
         $this->plugin = $plugin;
         if ($requestThread instanceof RequestThreadPool) {
-            $requestThread->setDataConnector($this);
+            $requestThread->setConnectorLayer($this);
         }
 
         $this->requestThread = $requestThread;

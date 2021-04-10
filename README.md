@@ -78,6 +78,7 @@ $get = $client->get()
     ->timeout(5); // timeout, default 10
 
 $get->async(); // async run
+$client->waitAll(); // wait to finish requests
 //or
 $get->run(); // sync run (wait compilation)
 ```
@@ -118,6 +119,7 @@ $post = $client->post()
     ->timeout(5); // timeout, default 10
 
 $post->async(); // async run
+$client->waitAll(); // wait to finish requests
 //or
 $post->run(); // sync run (wait compilation)
 ```

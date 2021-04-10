@@ -4,32 +4,17 @@ declare(strict_types=1);
 
 namespace redmc\librestful;
 
-use pocketmine\player\Player;
-use pocketmine\Server;
 use pocketmine\utils\InternetRequestResult;
-use pocketmine\world\World;
+use redmc\librestful\request\Request;
 
 class Response{
     protected InternetRequestResult $result;
 
-    public function __construct(InternetRequestResult $result) {
+    private Request $request;
+
+    public function __construct(Request $request, InternetRequestResult $result){
         $this->result = $result;
-    }
-
-    public function onlinePlayers(): array{
-        return $this->onlinePlayers;
-    }
-
-    public function players(): array{
-        return $this->players;
-    }
-
-    public function player(string $username): ?Player{
-        return $this->onlinePlayers[$username] ?? null;
-    }
-
-    public function world(int $id): ?World{
-        return $this->loadedWorlds[$id] ?? null;
+        $this->request = $request;
     }
 
     public function result(): InternetRequestResult{
@@ -47,5 +32,9 @@ class Response{
     /** @return string[][] */
     public function headers(): array{
         return $this->result->getHeaders();
+    }
+
+    public function request(): Request{
+        return $this->request;
     }
 }

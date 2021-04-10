@@ -6,6 +6,7 @@ namespace redmc\librestful\request;
 
 use pocketmine\utils\Internet;
 use pocketmine\utils\InternetRequestResult;
+use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\Method;
 use redmc\librestful\Utils;
 
@@ -26,13 +27,19 @@ class Get extends Request {
         return $this;
     }
 
-    public function execute(?string &$error = null): ?InternetRequestResult{
-        return Internet::getURL(
+    public function execute(): ?InternetRequestResult{
+        $error = null;
+        $result = Internet::getURL(
             $this->baseURL . $this->endpoint . (!empty($this->parameters) ?  '?' . http_build_query($this->parameters) : ''),
             $this->timeout,
             Utils::fixedHeaders($this->headers),
             $error
         );
+
+        if ($error !== null)
+            throw new RequestErrorException($this, $error);
+
+        return $result;
     }
 
     public function __serialize(): array {

@@ -3,10 +3,12 @@ librestful is a virion for [PocketMine](https://github.com/pmmp/PocketMine-MP) s
 
 ## Example
 ```php
+use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
 
 $client = librestful::create(
+    $plugin,
     "http://api.redmc.me",
     [
         "Authorization" => "Bearer API_KEY"
@@ -15,10 +17,13 @@ $client = librestful::create(
 
 $client->post()
     ->endpoint("player/ban")
+
     ->field("username", "eren5960")
     ->field("reason", "hack")
+
     ->result(fn(Response $result) => var_dump($result))
-    ->fail(fn(string $error) => var_dump($error))
+    ->fail(fn(RequestErrorException $error) => var_dump($error))
+
     ->async();
 ```
 
@@ -34,13 +39,17 @@ Download files and put to virions/ directory.
 ### GET Requests
 ```php
 // import
+use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
 
 // create librestful client
 $client = librestful::create(
+    $plugin, // plugin instance (\pocketmine\plugin\Plugin)
     "http://api.redmc.me", // base url 
-    ["Authorization" => "Bearer API_KEY"] // addinational headers for all requests
+    ["Authorization" => "Bearer API_KEY"], // addinational headers for all requests
+    2, // thread count
+    true // logging requests
 );
 
 $player = Player; // a player
@@ -60,7 +69,8 @@ $get = $client->get()
             $player->kick("unauthorized");
         }
     }) // handle result
-    ->fail(fn(string $error) => var_dump($error)) // handle error
+    ->fail(fn(RequestErrorException $error) => var_dump($error)) // handle error
+    ->finally(fn() => var_dump("It's over.")) // on finish
 
     ->header("Cookie", "Key=value") // one header usage
     ->headers(["Connection" => "keep-alive"]) // multiple headers usage
@@ -75,13 +85,17 @@ $get->run(); // sync run (wait compilation)
 ### POST Requests
 ```php
 // import
+use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
 
 // create librestful client
 $client = librestful::create(
+    $plugin, // plugin instance (\pocketmine\plugin\Plugin)
     "http://api.redmc.me", // base url 
-    ["Authorization" => "Bearer API_KEY"] // addinational headers for all requests
+    ["Authorization" => "Bearer API_KEY"], // addinational headers for all requests
+    2, // thread count
+    true // logging requests
 );
 
 // post
@@ -98,7 +112,8 @@ $post = $client->post()
     ->headers(["Connection" => "keep-alive"]) // multiple headers usage
 
     ->result(fn(Response $result) => var_dump($result)) // handle result
-    ->fail(fn(string $error) => var_dump($error)) // handle error
+    ->fail(fn(RequestErrorException $error) => var_dump($error)) // handle error
+    ->finally(fn() => var_dump("It's over.")) // on finish
 
     ->timeout(5); // timeout, default 10
 
@@ -111,6 +126,7 @@ $post->run(); // sync run (wait compilation)
 
 ### Minecraft Pocket Server Get List of Voters
 ```php
+use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
 
@@ -126,7 +142,7 @@ $client
     ->param("format", "json")
 
     ->result(fn(Response $response) => var_dump(json_decode($response->body(), true)))
-    ->fail(fn(string $error) => var_dump("unable to get monthly voters: " . $error))
+    ->fail(fn(RequestErrorException $error) => var_dump("unable to get monthly voters: " . $error->getMessage()))
 
     ->timeout(15)
     ->async();

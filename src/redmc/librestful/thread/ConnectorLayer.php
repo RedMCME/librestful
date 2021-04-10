@@ -57,7 +57,7 @@ class ConnectorLayer {
             } elseif ($handle !== null) {
                 try {
                     $handle($result);
-                } catch(\Exception $e) {
+                } catch(Exception $e) {
                     $prop = (new ReflectionClass(Exception::class))->getProperty("trace");
                     $prop->setAccessible(true);
                     $newTrace = $prop->getValue($e);
@@ -108,7 +108,7 @@ class ConnectorLayer {
             try {
                 $default($error, $trace);
                 $error = null;
-            } catch(\Exception $err) {
+            } catch(Exception $err) {
                 $error = $err;
             }
         }

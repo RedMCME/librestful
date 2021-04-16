@@ -42,6 +42,7 @@ Download files and put to virions/ directory.
 use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\librestful;
 use redmc\librestful\Response;
+use redmc\librestful\Status;
 
 // create librestful client
 $client = librestful::create(
@@ -56,16 +57,16 @@ $player = Player; // a player
 $get = $client->get()
     ->endpoint("player/can_access/" . $playerName) //endpoint
 
-    ->param("where", "win") // one parameter usage
+    ->param("server", "SkyBlock") // one parameter usage
     ->params([
-        "format" => "json",
-        "period" => "monthly"
+        "response" => "json",
+        "param2" => "param2"
     ]) // multiple parameter usage
 
     ->result(function(Response $result) use($player){
         if (!$player->isOnline()) return;
         
-        if ($result->code() === 401) { // unauthorized, this an example
+        if ($result->code() === Status::UNAUTHORIZED) { // unauthorized, this an example
             $player->kick("unauthorized");
         }
     }) // handle result

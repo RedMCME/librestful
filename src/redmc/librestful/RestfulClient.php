@@ -13,21 +13,25 @@ class RestfulClient {
     protected array $headers;
     private ConnectorLayer $layer;
 
-    public function __construct(ConnectorLayer $layer, string $baseURL, array $headers) {
-        $this->baseURL = rtrim($baseURL, "/") . "/";
+    public function __construct(
+        ConnectorLayer $layer,
+        string $baseURL,
+        array $headers
+    ) {
+        $this->baseURL = rtrim($baseURL, '/') . '/';
         $this->headers = $headers;
         $this->layer = $layer;
     }
 
-    public function get(): Get{
+    public function get(): Get {
         return new Get($this->layer, $this->baseURL, $this->headers);
     }
 
-    public function post(): Post{
+    public function post(): Post {
         return new Post($this->layer, $this->baseURL, $this->headers);
     }
 
-    public function waitAll(): void{
+    public function waitAll(): void {
         $this->layer->waitAll();
     }
 }

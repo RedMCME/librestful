@@ -26,7 +26,11 @@ abstract class Request {
 
     private ConnectorLayer $layer;
 
-    public function __construct(ConnectorLayer $layer, string $baseURL, array $headers = []) {
+    public function __construct(
+        ConnectorLayer $layer,
+        string $baseURL,
+        array $headers = []
+    ) {
         $this->baseURL = $baseURL;
         $this->headers = $headers;
         $this->layer = $layer;
@@ -35,28 +39,47 @@ abstract class Request {
     abstract public function getMethod(): Method;
 
     public function async(): void {
-        $this->layer->execute($this, $this->handle, $this->fail, $this->finally);
+        $this->layer->execute(
+            $this,
+            $this->handle,
+            $this->fail,
+            $this->finally
+        );
     }
 
     public function run(): void {
-        if ($this->layer->isLoggingRequests())
-            $this->layer->getPlugin()->getLogger()->debug("Running request: " . $this);
+        if ($this->layer->isLoggingRequests()) {
+            $this->layer
+                ->getPlugin()
+                ->getLogger()
+                ->debug('Running request: ' . $this);
+        }
 
-        $trace = new Exception("(This is the original stack trace for the following error)");
+        $trace = new Exception(
+            '(This is the original stack trace for the following error)'
+        );
         try {
             $result = $this->execute();
-            if($this->handle !== null)
+            if ($this->handle !== null) {
                 ($this->handle)(new Response($this, $result));
-        } catch(RequestErrorException $errorException) {
-            if($this->fail !== null) {
+            }
+        } catch (RequestErrorException $errorException) {
+            if ($this->fail !== null) {
                 ($this->fail)($errorException);
             } elseif ($this->layer->isLoggingRequests()) {
-                $this->layer->getPlugin()->getLogger()->error($errorException->getMessage());
-                $this->layer->getPlugin()->getLogger()->debug("Stack trace: " . $trace->getTraceAsString());
+                $this->layer
+                    ->getPlugin()
+                    ->getLogger()
+                    ->error($errorException->getMessage());
+                $this->layer
+                    ->getPlugin()
+                    ->getLogger()
+                    ->debug('Stack trace: ' . $trace->getTraceAsString());
             }
         } finally {
-            if ($this->finally !== null)
+            if ($this->finally !== null) {
                 ($this->finally)();
+            }
         }
     }
 
@@ -93,7 +116,7 @@ abstract class Request {
         return $this;
     }
 
-    public function finally(?\Closure $finally): self{
+    public function finally(?\Closure $finally): self {
         $this->finally = $finally;
         return $this;
     }
@@ -106,26 +129,50 @@ abstract class Request {
         return $this->fail;
     }
 
+    public function getEndpoint(): string {
+        return $this->endpoint;
+    }
+
     public function getFinalCallback(): ?\Closure {
         return $this->fail;
     }
 
     public function __serialize(): array {
         return [
-            "timeout" => $this->timeout,
-            "baseURL" => $this->baseURL,
-            "endpoint" => $this->endpoint,
-            "headers" => $this->headers
+            'timeout' => $this->timeout,
+            'baseURL' => $this->baseURL,
+            'endpoint' => $this->endpoint,
+            'headers' => $this->headers
         ];
     }
 
     public function __toString() {
         return sprintf(
-            TextFormat::DARK_GRAY . 'method="' . TextFormat::GRAY . '%s' . TextFormat::DARK_GRAY . '" ' .
-            TextFormat::DARK_GRAY . 'target="' . TextFormat::GRAY . '%s' . TextFormat::DARK_GRAY . '" ' .
-            TextFormat::DARK_GRAY . 'timeout=' . TextFormat::GRAY . '%d ' .
-            TextFormat::DARK_GRAY . 'headers=' . TextFormat::GRAY . '[%s]' . TextFormat::RESET,
-            $this->getMethod()->name(), $this->baseURL . $this->endpoint, $this->timeout, implode(" - ", Utils::fixedHeaders($this->headers))
+            TextFormat::DARK_GRAY .
+                'method="' .
+                TextFormat::GRAY .
+                '%s' .
+                TextFormat::DARK_GRAY .
+                '" ' .
+                TextFormat::DARK_GRAY .
+                'target="' .
+                TextFormat::GRAY .
+                '%s' .
+                TextFormat::DARK_GRAY .
+                '" ' .
+                TextFormat::DARK_GRAY .
+                'timeout=' .
+                TextFormat::GRAY .
+                '%d ' .
+                TextFormat::DARK_GRAY .
+                'headers=' .
+                TextFormat::GRAY .
+                '[%s]' .
+                TextFormat::RESET,
+            $this->getMethod()->name(),
+            $this->baseURL . $this->endpoint,
+            $this->timeout,
+            implode(' - ', Utils::fixedHeaders($this->headers))
         );
     }
 }

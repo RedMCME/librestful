@@ -8,15 +8,20 @@ use redmc\librestful\request\Request;
 use RuntimeException;
 use Throwable;
 
-class RequestErrorException extends RuntimeException{
-    private Request $request;
+class RequestErrorException extends RuntimeException {
+    private ?Request $request;
 
-    public function __construct(Request $request, $message = "", $code = 0, Throwable $previous = null) {
+    public function __construct(
+        $message = '',
+        ?Request $request = null,
+        $code = 0,
+        Throwable $previous = null
+    ) {
         parent::__construct($message, $code, $previous);
         $this->request = $request;
     }
 
-    public function request(): Request{
+    public function request(): ?Request {
         return $this->request;
     }
 }

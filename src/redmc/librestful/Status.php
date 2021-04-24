@@ -49,7 +49,6 @@ class Status {
      */
     const EARLY_HINTS = 103;
 
-
     /*
      * Success codes (2xx)
      */
@@ -122,7 +121,6 @@ class Status {
      */
     const IM_USED = 226;
 
-
     /*
      * Redirection codes (3xx)
      */
@@ -144,7 +142,6 @@ class Status {
     const TEMPORARY_REDIRECT = 307;
 
     const PERMANENT_REDIRECT = 308;
-
 
     /*
      * Client Error codes (4xx)
@@ -290,7 +287,6 @@ class Status {
 
     const UNAVAILABLE_FOR_LEGAL_REASONS = 451;
 
-
     /*
      * Server Error codes (5xx)
      */
@@ -321,5 +317,4 @@ class Status {
     const NOT_EXTENDED = 510;
 
     const NETWORK_AUTHENTICATION_REQUIRED = 511;
-
 }

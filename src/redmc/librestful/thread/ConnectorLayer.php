@@ -8,6 +8,7 @@ use Error;
 use Exception;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\Terminal;
+use pocketmine\utils\Utils;
 use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\request\Request;
 use ReflectionClass;
@@ -29,7 +30,11 @@ class ConnectorLayer {
 
     private int $requestId = 0;
 
-    public function __construct(Plugin $plugin, RequestThread $requestThread, bool $logRequests = false) {
+    public function __construct(
+        Plugin $plugin,
+        RequestThread $requestThread,
+        bool $logRequests = false
+    ) {
         $this->plugin = $plugin;
         if ($requestThread instanceof RequestThreadPool) {
             $requestThread->setConnectorLayer($this);
@@ -47,49 +52,97 @@ class ConnectorLayer {
         return $this->loggingRequests;
     }
 
-    public function execute(Request $request, ?callable $handle, ?callable $fail, ?callable $finally): void {
+    public function execute(
+        Request $request,
+        ?callable $handle,
+        ?callable $fail,
+        ?callable $finally
+    ): void {
         $requestId = $this->requestId++;
-        $trace = new Exception("(This is the original stack trace for the following error)");
+        $trace = new Exception(
+            '(This is the original stack trace for the following error)'
+        );
 
-        $this->handlers[$requestId] = function($result) use ($handle, $fail, $finally, $trace) {
-            if($result instanceof RequestErrorException) {
+        $this->handlers[$requestId] = function ($result) use (
+            $handle,
+            $fail,
+            $finally,
+            $trace
+        ) {
+            if ($result instanceof RequestErrorException) {
                 $this->reportError($fail, $result, $trace);
             } elseif ($handle !== null) {
                 try {
                     $handle($result);
-                } catch(Exception $e) {
-                    $prop = (new ReflectionClass(Exception::class))->getProperty("trace");
+                } catch (RequestErrorException $exception) {
+                    $this->reportError($fail, $exception, $trace);
+                } catch (Exception $e) {
+                    $prop = (new ReflectionClass(
+                        Exception::class
+                    ))->getProperty('trace');
                     $prop->setAccessible(true);
                     $newTrace = $prop->getValue($e);
                     $oldTrace = $prop->getValue($trace);
-                    for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j) {
+                    for (
+                        $i = count($newTrace) - 1, $j = count($oldTrace) - 1;
+                        $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j];
+                        --$i, --$j
+                    ) {
                         array_pop($newTrace);
                     }
 
-                    $prop->setValue($e, array_merge($newTrace, [
-                        [
-                            "function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
-                        ],
-                    ], $oldTrace));
+                    $prop->setValue(
+                        $e,
+                        array_merge(
+                            $newTrace,
+                            [
+                                [
+                                    'function' =>
+                                        Terminal::$COLOR_YELLOW .
+                                        '--- below is the original stack trace ---' .
+                                        Terminal::$FORMAT_RESET
+                                ]
+                            ],
+                            $oldTrace
+                        )
+                    );
                     throw $e;
-                } catch(Error $e) {
-                    $exceptionProperty = (new ReflectionClass(Exception::class))->getProperty("trace");
+                } catch (Error $e) {
+                    $exceptionProperty = (new ReflectionClass(
+                        Exception::class
+                    ))->getProperty('trace');
                     $exceptionProperty->setAccessible(true);
                     $oldTrace = $exceptionProperty->getValue($trace);
 
-                    $errorProperty = (new ReflectionClass(Error::class))->getProperty("trace");
+                    $errorProperty = (new ReflectionClass(
+                        Error::class
+                    ))->getProperty('trace');
                     $errorProperty->setAccessible(true);
                     $newTrace = $errorProperty->getValue($e);
 
-                    for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j) {
+                    for (
+                        $i = count($newTrace) - 1, $j = count($oldTrace) - 1;
+                        $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j];
+                        --$i, --$j
+                    ) {
                         array_pop($newTrace);
                     }
 
-                    $errorProperty->setValue($e, array_merge($newTrace, [
-                        [
-                            "function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
-                        ],
-                    ], $oldTrace));
+                    $errorProperty->setValue(
+                        $e,
+                        array_merge(
+                            $newTrace,
+                            [
+                                [
+                                    'function' =>
+                                        Terminal::$COLOR_YELLOW .
+                                        '--- below is the original stack trace ---' .
+                                        Terminal::$FORMAT_RESET
+                                ]
+                            ],
+                            $oldTrace
+                        )
+                    );
                     throw $e;
                 }
             }
@@ -97,31 +150,46 @@ class ConnectorLayer {
                 $finally();
             }
         };
-        if($this->loggingRequests) {
-            $this->plugin->getLogger()->debug("Queuing request: " . str_replace(["\r\n", "\n"], "\\n ", $request->__toString()));
+        if ($this->loggingRequests) {
+            $this->plugin
+                ->getLogger()
+                ->debug(
+                    'Queuing request: ' .
+                        str_replace(
+                            ["\r\n", "\n"],
+                            "\\n ",
+                            $request->__toString()
+                        )
+                );
         }
         $this->requestThread->addRequest($requestId, $request);
     }
 
-    private function reportError(?callable $default, RequestErrorException $error, ?Exception $trace): void {
-        if($default !== null) {
+    private function reportError(
+        ?callable $failedHandler,
+        RequestErrorException $error,
+        ?Exception $trace
+    ): void {
+        if ($failedHandler !== null) {
             try {
-                $default($error, $trace);
+                $failedHandler($error);
                 $error = null;
-            } catch(Exception $err) {
+            } catch (Exception $err) {
                 $error = $err;
             }
         }
-        if($error !== null) {
+        if ($error !== null) {
             $this->plugin->getLogger()->error($error->getMessage());
-            if($trace !== null) {
-                $this->plugin->getLogger()->debug("Stack trace: " . $trace->getTraceAsString());
+            if ($trace !== null) {
+                $this->plugin
+                    ->getLogger()
+                    ->debug('Stack trace: ' . $trace->getTraceAsString());
             }
         }
     }
 
     public function waitAll(): void {
-        while(!empty($this->handlers)) {
+        while (!empty($this->handlers)) {
             $this->checkResults();
             usleep(1000);
         }

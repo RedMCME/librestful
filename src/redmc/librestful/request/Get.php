@@ -13,31 +13,36 @@ use redmc\librestful\Utils;
 class Get extends Request {
     protected array $parameters = [];
 
-    public function getMethod(): Method{
+    public function getMethod(): Method {
         return Method::GET();
     }
 
-    public function param(string $key, $value): self{
+    public function param(string $key, $value): self {
         $this->parameters[$key] = $value;
         return $this;
     }
 
-    public function params(array $params): self{
+    public function params(array $params): self {
         $this->parameters = array_merge($this->parameters, $params);
         return $this;
     }
 
-    public function execute(): ?InternetRequestResult{
+    public function execute(): ?InternetRequestResult {
         $error = null;
         $result = Internet::getURL(
-            $this->baseURL . $this->endpoint . (!empty($this->parameters) ?  '?' . http_build_query($this->parameters) : ''),
+            $this->baseURL .
+                $this->endpoint .
+                (!empty($this->parameters)
+                    ? '?' . http_build_query($this->parameters)
+                    : ''),
             $this->timeout,
             Utils::fixedHeaders($this->headers),
             $error
         );
 
-        if ($error !== null)
-            throw new RequestErrorException($this, $error);
+        if ($error !== null) {
+            throw new RequestErrorException($error, $this);
+        }
 
         return $result;
     }
@@ -45,7 +50,7 @@ class Get extends Request {
     public function __serialize(): array {
         $data = parent::__serialize();
 
-        $data["parameters"] = $this->parameters;
+        $data['parameters'] = $this->parameters;
         return $data;
     }
 }

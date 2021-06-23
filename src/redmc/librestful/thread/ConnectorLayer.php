@@ -84,7 +84,6 @@ class ConnectorLayer
         while (!empty($this->handlers)) {
             $this->checkResults();
             usleep(1000);
-            var_dump("checking result");
         }
     }
 

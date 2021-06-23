@@ -70,15 +70,8 @@ class DefaultRequestThread extends Thread implements RequestThread {
     }
 
     public function stopRunning(): void {
-        var_dump(1);
         $this->bufferSend->invalidate();
-var_dump(2);
         parent::quit();
-        var_dump(3);
-    }
-
-    public function join(): void{
-        var_dump("jj");
     }
 
     public function quit(): void {

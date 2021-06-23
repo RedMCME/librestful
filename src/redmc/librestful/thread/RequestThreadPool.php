@@ -50,17 +50,13 @@ class RequestThreadPool implements RequestThread {
     }
 
     public function join(): void {
-        var_dump("eren");
         foreach ($this->workers as $worker) {
-            var_dump("s#" . $worker->getSlaveNumber() . " > join");
             $worker->join();
         }
     }
 
     public function stopRunning(): void {
-        var_dump("ahmed");
         foreach ($this->workers as $worker) {
-            var_dump("s#" . $worker->getSlaveNumber() . " > stop");
             $worker->stopRunning();
         }
     }

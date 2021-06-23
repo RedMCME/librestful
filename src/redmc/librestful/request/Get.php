@@ -17,24 +17,34 @@ abstract class Get extends Request {
         return Method::GET();
     }
 
-    public function execute(): ?InternetRequestResult {
-        $error = null;
-        $result = Internet::getURL(
-            $this->baseURL .
-                $this->endpoint() .
-                (!empty($this->parameters)
-                    ? '?' . http_build_query($this->parameters)
-                    : ''),
-            $this->timeout,
-            Utils::fixedHeaders($this->headers),
-            $error
-        );
+    public function executeFn(): callable {
+        return static function (string $url, int $timeout, array $headers): ?InternetRequestResult {
+            $error = null;
+            $result = Internet::getURL(
+                $url,
+                $timeout,
+                Utils::fixedHeaders($headers),
+                $error
+            );
 
-        if ($error !== null) {
-            throw new RequestErrorException($error, $this);
-        }
+            if ($error !== null) {
+                throw new RequestErrorException($error, $this);
+            }
 
-        return $result;
+            return $result;
+        };
+    }
+
+    public function getUrl(): string{
+        return $this->baseURL .
+            $this->endpoint() .
+            (!empty($this->parameters)
+                ? '?' . http_build_query($this->parameters)
+                : '');
+    }
+
+    public function executeParams(): array{
+        return [$this->getURL(), $this->timeout, $this->headers];
     }
 
     public function __serialize(): array {

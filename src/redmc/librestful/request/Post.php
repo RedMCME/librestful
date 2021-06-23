@@ -17,21 +17,26 @@ abstract class Post extends Request {
         return Method::POST();
     }
 
-    public function execute(): ?InternetRequestResult {
-        $error = null;
-        $result = Internet::postURL(
-            $this->baseURL . $this->endpoint(),
-            $this->fields,
-            $this->timeout,
-            Utils::fixedHeaders($this->headers),
-            $error
-        );
+    public function executeFn(): callable {
+        return static function (string $url, array $fields, int $timeout, array $headers): ?InternetRequestResult{
+            $error = null;
+            $result = Internet::postURL(
+                $url,
+                $fields,
+                $timeout,
+                Utils::fixedHeaders($headers),
+                $error
+            );
 
-        if ($error !== null) {
-            throw new RequestErrorException($error, $this);
-        }
+            if ($error !== null) {
+                throw new RequestErrorException($error, $this);
+            }
+            return $result;
+        };
+    }
 
-        return $result;
+    public function executeParams(): array{
+        return [$this->getURL(), $this->fields, $this->timeout, $this->headers];
     }
 
     public function __serialize(): array {

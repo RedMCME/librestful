@@ -9,7 +9,6 @@ use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
 use pocketmine\thread\Thread;
 use redmc\librestful\exceptions\RequestErrorException;
-use redmc\librestful\request\Request;
 use redmc\librestful\Response;
 
 class DefaultRequestThread extends Thread implements RequestThread {
@@ -23,6 +22,8 @@ class DefaultRequestThread extends Thread implements RequestThread {
 
     protected bool $busy = false;
 
+    protected $classLoaders;
+
     public function __construct(
         SleeperNotifier $notifier,
         RequestSendQueue $bufferSend = null,
@@ -33,11 +34,7 @@ class DefaultRequestThread extends Thread implements RequestThread {
         $this->slaveNumber = self::$nextSlaveNumber++;
         $this->bufferSend = $bufferSend ?? new RequestSendQueue();
         $this->bufferRecv = $bufferRecv ?? new RequestRecvQueue();
-
-        $this->setClassLoader(Server::getInstance()
-            ->getPluginManager()
-            ->getPlugin('DEVirion')
-            ->getVirionClassLoader());
+        $this->setClassLoader(Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader());
 
         $this->start(PTHREADS_INHERIT_INI | PTHREADS_INHERIT_CONSTANTS);
     }
@@ -45,19 +42,19 @@ class DefaultRequestThread extends Thread implements RequestThread {
     public function onRun(): void {
         while (true) {
             $row = $this->bufferSend->fetchQuery();
-            if (!is_string($row)) {
-                break;
+            if ($row === null) {
+                continue;
             }
 
             $this->busy = true;
-            [$requestId, $request] = unserialize($row, [
-                'allowed_classes' => true
-            ]);
+            [$requestId, $execute, $executeParams] = $row;
+
             try {
-                $result = $request->execute();
+                $start = microtime(true);
+                $result = $execute(...$executeParams);
                 $this->bufferRecv->publishResult(
                     $requestId,
-                    new Response($request, $result)
+                    new Response($result, microtime(true) - $start)
                 );
             } catch (RequestErrorException $error) {
                 $this->bufferRecv->publishError($requestId, $error);
@@ -73,17 +70,23 @@ class DefaultRequestThread extends Thread implements RequestThread {
     }
 
     public function stopRunning(): void {
+        var_dump(1);
         $this->bufferSend->invalidate();
-
+var_dump(2);
         parent::quit();
+        var_dump(3);
+    }
+
+    public function join(): void{
+        var_dump("jj");
     }
 
     public function quit(): void {
         $this->stopRunning();
     }
 
-    public function addRequest(int $requestId, Request $request): void {
-        $this->bufferSend->scheduleQuery($requestId, $request);
+    public function addRequest(int $requestId, callable $execute, array $executeParams): void {
+        $this->bufferSend->scheduleQuery($requestId, $execute, $executeParams);
     }
 
     public function readResults(array &$callbacks): void {

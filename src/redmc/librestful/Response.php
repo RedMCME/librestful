@@ -5,19 +5,14 @@ declare(strict_types=1);
 namespace redmc\librestful;
 
 use pocketmine\utils\InternetRequestResult;
-use redmc\librestful\request\Request;
 
 class Response {
     protected InternetRequestResult $result;
+    private float $ms;
 
-    private Request $request;
-
-    public function __construct(
-        Request $request,
-        InternetRequestResult $result
-    ) {
+    public function __construct(InternetRequestResult $result, float $ms) {
         $this->result = $result;
-        $this->request = $request;
+        $this->ms = $ms;
     }
 
     public function result(): InternetRequestResult {
@@ -37,7 +32,7 @@ class Response {
         return $this->result->getHeaders();
     }
 
-    public function request(): Request {
-        return $this->request;
+    public function getMs(): float{
+        return $this->ms;
     }
 }

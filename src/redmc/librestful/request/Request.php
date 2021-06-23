@@ -24,6 +24,12 @@ abstract class Request {
     private ConnectorLayer $layer;
     protected ?\Closure $onResult = null;
 
+    protected Result $result;
+
+    public function __construct(){
+        $this->result = new Result(null, null);
+    }
+
     public function bind(RestfulClient $client): self{
         $this->layer = $client->getLayer();
         $this->baseURL($client->getBaseURL());
@@ -34,7 +40,9 @@ abstract class Request {
     abstract public function getMethod(): Method;
 
     /* @internal */
-    abstract public function execute(): ?InternetRequestResult;
+    abstract public function executeFn(): callable;
+    /* @internal */
+    abstract public function executeParams(): array;
 
     abstract public function success(Response $response): void;
     abstract public function failed(RequestErrorException $error): void;
@@ -43,14 +51,18 @@ abstract class Request {
     abstract protected function endpoint(): string;
 
     public function result(): Result{
-        return new Result(null, null);
+        return $this->result;
     }
 
-    public function beforeExecute(): void{}
+    public function getURL(): string{
+        return $this->baseURL . $this->endpoint();
+    }
 
     public function async(): void {
         $this->layer->execute(
             $this,
+            $this->executeFn(),
+            $this->executeParams(),
             $this->onResult
         );
     }
@@ -63,11 +75,11 @@ abstract class Request {
                 ->debug('Running request: ' . $this);
         }
 
-        $this->beforeExecute();
         try {
-            $result = $this->execute();
+            $start = microtime(true);
+            $result = ($this->executeFn())(...$this->executeParams());
 
-            $this->success(new Response($this, $result));
+            $this->success(new Response($result, microtime(true) - $start));
         } catch (RequestErrorException $errorException) {
             $this->failed($errorException);
         } finally {
@@ -110,7 +122,7 @@ abstract class Request {
             'timeout' => $this->timeout,
             'baseURL' => $this->baseURL,
             'endpoint' => $this->endpoint(),
-            'headers' => $this->headers,
+            'headers' => $this->headers
         ];
     }
 

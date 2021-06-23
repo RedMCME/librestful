@@ -47,7 +47,7 @@ class ConnectorLayer
         return $this->loggingRequests;
     }
 
-    public function execute(Request $request, ?callable $onResult): void
+    public function execute(Request $request, callable $execute, array $executeParams, ?callable $onResult): void
     {
         $requestId = $this->requestId++;
 
@@ -76,7 +76,7 @@ class ConnectorLayer
                     )
                 );
         }
-        $this->requestThread->addRequest($requestId, $request);
+        $this->requestThread->addRequest($requestId, $execute, $executeParams);
     }
 
     public function waitAll(): void
@@ -84,6 +84,7 @@ class ConnectorLayer
         while (!empty($this->handlers)) {
             $this->checkResults();
             usleep(1000);
+            var_dump("checking result");
         }
     }
 

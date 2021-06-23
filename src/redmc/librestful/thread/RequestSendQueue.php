@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace redmc\librestful\thread;
 
 use redmc\librestful\exceptions\QueueShutdownException;
-use redmc\librestful\request\Request;
 use Threaded;
 use function serialize;
 
@@ -13,29 +12,50 @@ class RequestSendQueue extends Threaded {
     private bool $invalidated = false;
 
     private Threaded $requests;
+    private Threaded $executors;
+    private Threaded $executorsParams;
+
 
     public function __construct() {
         $this->requests = new Threaded();
+        $this->executors = new Threaded();
+        $this->executorsParams = new Threaded();
     }
 
-    public function scheduleQuery(int $requestId, Request $request): void {
+    public function scheduleQuery(int $requestId, callable $execute, array $executeParams): void {
         if ($this->invalidated) {
             throw new QueueShutdownException(
                 'You cannot schedule a request on an invalidated queue.'
             );
         }
-        $this->synchronized(function () use ($requestId, $request): void {
-            $this->requests[] = serialize([$requestId, $request]);
+        $this->synchronized(function () use ($requestId, $execute, $executeParams): void {
+
+            $this->requests[] = serialize($requestId);
+            $this->executors[$requestId] = $execute;
+            $this->executorsParams[$requestId] = serialize($executeParams);
+
             $this->notifyOne();
         });
     }
 
-    public function fetchQuery(): ?string {
-        return $this->synchronized(function (): ?string {
+    public function fetchQuery(): ?array {
+        return $this->synchronized(function (): ?array {
             while ($this->requests->count() === 0 && !$this->isInvalidated()) {
                 $this->wait();
             }
-            return $this->requests->shift();
+
+            $requestId = $this->requests->shift();
+            if ($requestId === null) {
+                return null;
+            }
+
+            $requestId = unserialize($requestId);
+
+            $executor = $this->executors[$requestId];
+            $params = unserialize($this->executorsParams[$requestId]);
+
+            unset($this->executors[$requestId], $this->executorsParams[$requestId]);
+            return [$requestId, $executor, $params];
         });
     }
 

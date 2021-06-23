@@ -7,7 +7,6 @@ namespace redmc\librestful\thread;
 use InvalidArgumentException;
 use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
-use redmc\librestful\request\Request;
 
 class RequestThreadPool implements RequestThread {
     private SleeperNotifier $notifier;
@@ -51,19 +50,23 @@ class RequestThreadPool implements RequestThread {
     }
 
     public function join(): void {
+        var_dump("eren");
         foreach ($this->workers as $worker) {
+            var_dump("s#" . $worker->getSlaveNumber() . " > join");
             $worker->join();
         }
     }
 
     public function stopRunning(): void {
+        var_dump("ahmed");
         foreach ($this->workers as $worker) {
+            var_dump("s#" . $worker->getSlaveNumber() . " > stop");
             $worker->stopRunning();
         }
     }
 
-    public function addRequest(int $requestId, Request $request): void {
-        $this->bufferSend->scheduleQuery($requestId, $request);
+    public function addRequest(int $requestId, callable $execute, array $executeParams): void {
+        $this->bufferSend->scheduleQuery($requestId, $execute, $executeParams);
 
         // check if we need to increase worker size
         foreach ($this->workers as $worker) {

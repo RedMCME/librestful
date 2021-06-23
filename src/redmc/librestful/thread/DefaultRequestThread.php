@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
 use pocketmine\thread\Thread;
-use pocketmine\utils\InternetRequestResult;
 use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\request\Request;
 use redmc\librestful\Response;

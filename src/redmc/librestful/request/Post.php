@@ -10,27 +10,17 @@ use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\Method;
 use redmc\librestful\Utils;
 
-class Post extends Request {
+abstract class Post extends Request {
     protected array $fields = [];
 
     public function getMethod(): Method {
         return Method::POST();
     }
 
-    public function field(string $key, $value): self {
-        $this->fields[$key] = $value;
-        return $this;
-    }
-
-    public function fields(array $fields): self {
-        $this->fields = array_merge($this->fields, $fields);
-        return $this;
-    }
-
     public function execute(): ?InternetRequestResult {
         $error = null;
         $result = Internet::postURL(
-            $this->baseURL . $this->endpoint,
+            $this->baseURL . $this->endpoint(),
             $this->fields,
             $this->timeout,
             Utils::fixedHeaders($this->headers),

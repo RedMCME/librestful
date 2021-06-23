@@ -10,28 +10,18 @@ use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\Method;
 use redmc\librestful\Utils;
 
-class Get extends Request {
+abstract class Get extends Request {
     protected array $parameters = [];
 
-    public function getMethod(): Method {
+    public function getMethod(): Method{
         return Method::GET();
-    }
-
-    public function param(string $key, $value): self {
-        $this->parameters[$key] = $value;
-        return $this;
-    }
-
-    public function params(array $params): self {
-        $this->parameters = array_merge($this->parameters, $params);
-        return $this;
     }
 
     public function execute(): ?InternetRequestResult {
         $error = null;
         $result = Internet::getURL(
             $this->baseURL .
-                $this->endpoint .
+                $this->endpoint() .
                 (!empty($this->parameters)
                     ? '?' . http_build_query($this->parameters)
                     : ''),

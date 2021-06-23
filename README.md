@@ -18,7 +18,7 @@ $client = librestful::create(
 $client->post()
     ->endpoint("player/ban")
 
-    ->field("username", "eren5960")
+    ->field("username", "xerenahmed")
     ->field("reason", "hack")
 
     ->result(fn(Response $result) => var_dump($result))
@@ -104,7 +104,7 @@ $client = librestful::create(
 $post = $client->post()
     ->endpoint("player/ban") //endpoint
 
-    ->field("username", "eren5960") // one field usage
+    ->field("username", "xerenahmed") // one field usage
     ->fields([
         "reason" => "hack",
         "time" => strtotime("+1 months") 

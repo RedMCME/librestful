@@ -4,50 +4,59 @@ declare(strict_types=1);
 
 namespace redmc\librestful\request;
 
-use Exception;
 use pocketmine\utils\InternetRequestResult;
 use pocketmine\utils\TextFormat;
 use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\Method;
 use redmc\librestful\Response;
+use redmc\librestful\RestfulClient;
+use redmc\librestful\Result;
 use redmc\librestful\thread\ConnectorLayer;
 use redmc\librestful\Utils;
 
 abstract class Request {
+
     protected string $baseURL;
-    protected string $endpoint = '';
 
     protected int $timeout = 10;
     protected array $headers = [];
 
-    protected ?\Closure $handle = null;
-    protected ?\Closure $fail = null;
-    protected ?\Closure $finally = null;
-
     private ConnectorLayer $layer;
+    protected ?\Closure $onResult = null;
 
-    public function __construct(
-        ConnectorLayer $layer,
-        string $baseURL,
-        array $headers = []
-    ) {
-        $this->baseURL = $baseURL;
-        $this->headers = $headers;
-        $this->layer = $layer;
+    public function bind(RestfulClient $client): self{
+        $this->layer = $client->getLayer();
+        $this->baseURL($client->getBaseURL());
+        $this->headers($client->getHeaders());
+        return $this;
     }
 
     abstract public function getMethod(): Method;
 
+    /* @internal */
+    abstract public function execute(): ?InternetRequestResult;
+
+    abstract public function success(Response $response): void;
+    abstract public function failed(RequestErrorException $error): void;
+    public function finally(): void{}
+
+    abstract protected function endpoint(): string;
+
+    public function result(): Result{
+        return new Result(null, null);
+    }
+
+    public function beforeExecute(): void{}
+
     public function async(): void {
+        $this->beforeExecute();
         $this->layer->execute(
             $this,
-            $this->handle,
-            $this->fail,
-            $this->finally
+            $this->onResult
         );
     }
 
-    public function run(): void {
+    public function sync(): self {
         if ($this->layer->isLoggingRequests()) {
             $this->layer
                 ->getPlugin()
@@ -55,39 +64,25 @@ abstract class Request {
                 ->debug('Running request: ' . $this);
         }
 
-        $trace = new Exception(
-            '(This is the original stack trace for the following error)'
-        );
+        $this->beforeExecute();
         try {
             $result = $this->execute();
-            if ($this->handle !== null) {
-                ($this->handle)(new Response($this, $result));
-            }
+
+            $this->success(new Response($this, $result));
         } catch (RequestErrorException $errorException) {
-            if ($this->fail !== null) {
-                ($this->fail)($errorException);
-            } elseif ($this->layer->isLoggingRequests()) {
-                $this->layer
-                    ->getPlugin()
-                    ->getLogger()
-                    ->error($errorException->getMessage());
-                $this->layer
-                    ->getPlugin()
-                    ->getLogger()
-                    ->debug('Stack trace: ' . $trace->getTraceAsString());
-            }
+            $this->failed($errorException);
         } finally {
-            if ($this->finally !== null) {
-                ($this->finally)();
-            }
+            $this->finally();
         }
+        if ($this->onResult !== null) {
+            ($this->onResult)($this->result());
+        }
+
+        return $this;
     }
 
-    /* @internal */
-    abstract public function execute(): ?InternetRequestResult;
-
-    public function endpoint(string $endpoint): self {
-        $this->endpoint = $endpoint;
+    public function baseURL(string $baseURL): self {
+        $this->baseURL = $baseURL;
         return $this;
     }
 
@@ -106,71 +101,45 @@ abstract class Request {
         return $this;
     }
 
-    public function result(?\Closure $handle): self {
-        $this->handle = $handle;
+    public function onResult(\Closure $result): self {
+        $this->onResult = $result;
         return $this;
-    }
-
-    public function fail(?\Closure $fail): self {
-        $this->fail = $fail;
-        return $this;
-    }
-
-    public function finally(?\Closure $finally): self {
-        $this->finally = $finally;
-        return $this;
-    }
-
-    public function getHandleCallback(): ?\Closure {
-        return $this->handle;
-    }
-
-    public function getFailCallback(): ?\Closure {
-        return $this->fail;
-    }
-
-    public function getEndpoint(): string {
-        return $this->endpoint;
-    }
-
-    public function getFinalCallback(): ?\Closure {
-        return $this->fail;
     }
 
     public function __serialize(): array {
         return [
             'timeout' => $this->timeout,
             'baseURL' => $this->baseURL,
-            'endpoint' => $this->endpoint,
-            'headers' => $this->headers
+            'endpoint' => $this->endpoint(),
+            'headers' => $this->headers,
         ];
     }
 
     public function __toString() {
         return sprintf(
-            TextFormat::DARK_GRAY .
+            TextFormat::GOLD .
                 'method="' .
                 TextFormat::GRAY .
                 '%s' .
-                TextFormat::DARK_GRAY .
+                TextFormat::GOLD .
                 '" ' .
-                TextFormat::DARK_GRAY .
+                TextFormat::GOLD .
                 'target="' .
                 TextFormat::GRAY .
                 '%s' .
-                TextFormat::DARK_GRAY .
+                TextFormat::GOLD .
                 '" ' .
-                TextFormat::DARK_GRAY .
+                TextFormat::GOLD .
                 'timeout=' .
                 TextFormat::GRAY .
                 '%d ' .
-                TextFormat::DARK_GRAY .
+                TextFormat::GOLD .
                 'headers=' .
                 TextFormat::GRAY .
                 '[%s]' .
                 TextFormat::RESET,
             $this->getMethod()->name(),
-            $this->baseURL . $this->endpoint,
+            $this->baseURL . $this->endpoint(),
             $this->timeout,
             implode(' - ', Utils::fixedHeaders($this->headers))
         );

@@ -34,18 +34,15 @@ class DefaultRequestThread extends Thread implements RequestThread {
         $this->bufferSend = $bufferSend ?? new RequestSendQueue();
         $this->bufferRecv = $bufferRecv ?? new RequestRecvQueue();
 
-        $cl = Server::getInstance()
+        $this->setClassLoader(Server::getInstance()
             ->getPluginManager()
             ->getPlugin('DEVirion')
-            ->getVirionClassLoader();
-        $this->setClassLoader($cl);
+            ->getVirionClassLoader());
 
         $this->start(PTHREADS_INHERIT_INI | PTHREADS_INHERIT_CONSTANTS);
     }
 
     public function onRun(): void {
-        $this->registerClassLoader();
-
         while (true) {
             $row = $this->bufferSend->fetchQuery();
             if (!is_string($row)) {

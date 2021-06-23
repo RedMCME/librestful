@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace redmc\librestful\thread;
 
-use Exception;
 use pocketmine\plugin\Plugin;
 use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\request\Request;
@@ -28,8 +27,7 @@ class ConnectorLayer
         Plugin $plugin,
         RequestThread $requestThread,
         bool $logRequests = false
-    )
-    {
+    ){
         $this->plugin = $plugin;
         if ($requestThread instanceof RequestThreadPool) {
             $requestThread->setConnectorLayer($this);
@@ -79,30 +77,6 @@ class ConnectorLayer
                 );
         }
         $this->requestThread->addRequest($requestId, $request);
-    }
-
-    private function reportError(
-        ?callable $failedHandler,
-        RequestErrorException $error,
-        ?Exception $trace
-    ): void
-    {
-        if ($failedHandler !== null) {
-            try {
-                $failedHandler($error);
-                $error = null;
-            } catch (Exception $err) {
-                $error = $err;
-            }
-        }
-        if ($error !== null) {
-            $this->plugin->getLogger()->error($error->getMessage());
-            if ($trace !== null) {
-                $this->plugin
-                    ->getLogger()
-                    ->debug('Stack trace: ' . $trace->getTraceAsString());
-            }
-        }
     }
 
     public function waitAll(): void

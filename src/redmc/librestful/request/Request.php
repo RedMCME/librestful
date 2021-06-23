@@ -49,7 +49,6 @@ abstract class Request {
     public function beforeExecute(): void{}
 
     public function async(): void {
-        $this->beforeExecute();
         $this->layer->execute(
             $this,
             $this->onResult

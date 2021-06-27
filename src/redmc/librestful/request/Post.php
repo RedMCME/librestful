@@ -10,14 +10,14 @@ use redmc\librestful\exceptions\RequestErrorException;
 use redmc\librestful\Method;
 use redmc\librestful\Utils;
 
-abstract class Post extends Request {
+abstract class Post extends Request{
     protected array $fields = [];
 
-    public function getMethod(): Method {
+    public function getMethod(): Method{
         return Method::POST();
     }
 
-    public function executeFn(): callable {
+    public function executeFn(): callable{
         return static function (string $url, array $fields, int $timeout, array $headers): ?InternetRequestResult{
             $error = null;
             $result = Internet::postURL(
@@ -28,7 +28,7 @@ abstract class Post extends Request {
                 $error
             );
 
-            if ($error !== null) {
+            if($error !== null){
                 throw new RequestErrorException($error, $this);
             }
             return $result;
@@ -39,7 +39,7 @@ abstract class Post extends Request {
         return [$this->getURL(), $this->fields, $this->timeout, $this->headers];
     }
 
-    public function __serialize(): array {
+    public function __serialize(): array{
         $data = parent::__serialize();
 
         $data['fields'] = $this->fields;

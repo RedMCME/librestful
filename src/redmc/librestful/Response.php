@@ -32,7 +32,7 @@ class Response {
         return $this->result->getHeaders();
     }
 
-    public function getMs(): float{
+    public function ms(): float{
         return $this->ms;
     }
 }

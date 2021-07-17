@@ -2,8 +2,7 @@
 
 namespace redmc\librestful;
 
-class AsParams {
-
+class AsParams{
     private array $value;
 
     public function __construct(array $value){

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace redmc\librestful\thread;
 
-interface RequestThread {
+interface RequestThread{
     /**
      * Joins the thread
      *
@@ -17,7 +17,11 @@ interface RequestThread {
      */
     public function stopRunning(): void;
 
-    public function addRequest(int $requestId, callable $execute, array $executeParams): void;
+    public function addRequest(
+        int $requestId,
+        callable $execute,
+        array $executeParams
+    ): void;
 
     /**
      * Handles the results that this request has completed

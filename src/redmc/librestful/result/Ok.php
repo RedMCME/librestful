@@ -1,8 +1,8 @@
 <?php
 
-namespace redmc\librestful;
+namespace redmc\librestful\result;
 
-class Ok extends Result {
+class Ok extends Result{
     public function __construct($ok){
         parent::__construct($ok, null);
     }

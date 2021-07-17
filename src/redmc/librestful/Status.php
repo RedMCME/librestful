@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace redmc\librestful;
 
-class Status {
+class Status{
     /*
      * HTTP Status Codes & their meaning
      * Source: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes

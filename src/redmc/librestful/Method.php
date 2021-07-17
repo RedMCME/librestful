@@ -9,11 +9,16 @@ use pocketmine\utils\EnumTrait;
 /**
  * @method static self GET()
  * @method static self POST()
+ * @method static self DELETE()
  */
-final class Method {
+final class Method{
     use EnumTrait;
 
-    protected static function setup(): void {
-        self::registerAll(new self('get'), new self('post'));
+    protected static function setup(): void{
+        self::registerAll(
+            new self("get"),
+            new self("post"),
+            new self("delete")
+        );
     }
 }

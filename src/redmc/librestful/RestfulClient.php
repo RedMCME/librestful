@@ -7,7 +7,7 @@ namespace redmc\librestful;
 use redmc\librestful\request\Request;
 use redmc\librestful\thread\ConnectorLayer;
 
-class RestfulClient {
+class RestfulClient{
     protected string $baseURL;
     protected array $headers;
     private ConnectorLayer $layer;
@@ -16,8 +16,8 @@ class RestfulClient {
         ConnectorLayer $layer,
         string $baseURL,
         array $headers
-    ) {
-        $this->baseURL = rtrim($baseURL, '/') . '/';
+    ){
+        $this->baseURL = rtrim($baseURL, "/") . "/";
         $this->headers = $headers;
         $this->layer = $layer;
     }
@@ -26,17 +26,15 @@ class RestfulClient {
         return $this->layer;
     }
 
-    public function getBaseURL(): string
-    {
+    public function getBaseURL(): string{
         return $this->baseURL;
     }
 
-    public function getHeaders(): array
-    {
+    public function getHeaders(): array{
         return $this->headers;
     }
 
-    public function waitAll(): void {
+    public function waitAll(): void{
         $this->layer->waitAll();
     }
 }

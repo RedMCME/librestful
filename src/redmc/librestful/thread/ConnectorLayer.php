@@ -45,41 +45,50 @@ class ConnectorLayer{
         return $this->loggingRequests;
     }
 
-    public function execute(Request $request, callable $execute, array $executeParams, ?callable $onResult): void{
+    public function execute(
+        Request $request,
+        callable $execute,
+        array $executeParams,
+        ?callable $onResult
+    ): void{
         $requestId = $this->requestId++;
 
-        $this->handlers[$requestId] =
-            function ($response) use ($request, $onResult){
-                $result = null;
-                if($response instanceof RequestErrorException){
-                    $result = $request->failed($response);
-                }elseif($response instanceof Response){
-                    $code = $response->code();
-                    if($code >= 200 && $code <= 299){
-                        $result = $request->success($response);
-                    }else if($code >= 400 && $code <= 499){
-                        $result = $request->clientError($response);
-                    }else if($code >= 500 && $code <= 599){
-                        $result = $request->serverError($response);
-                    }else{
-                        $result = $request->failed(new RequestErrorException("unknown response: " . $code));
-                    }
+        $this->handlers[$requestId] = function ($response) use (
+            $request,
+            $onResult
+        ){
+            $result = null;
+            if($response instanceof RequestErrorException){
+                $result = $request->failed($response);
+            }elseif($response instanceof Response){
+                $code = $response->code();
+                if($code >= 200 && $code <= 299){
+                    $result = $request->success($response);
+                }elseif($code >= 400 && $code <= 499){
+                    $result = $request->clientError($response);
+                }elseif($code >= 500 && $code <= 599){
+                    $result = $request->serverError($response);
+                }else{
+                    $result = $request->failed(
+                        new RequestErrorException("unknown response: " . $code)
+                    );
                 }
+            }
 
-                if ($result !== null) {
-                    $request->setResult($result);
-                }
+            if($result !== null){
+                $request->setResult($result);
+            }
 
-                $request->finally();
-                if($onResult !== null){
-                    $onResult($request->result());
-                }
-            };
+            $request->finally();
+            if($onResult !== null){
+                $onResult($request->result());
+            }
+        };
         if($this->loggingRequests){
             $this->plugin
                 ->getLogger()
                 ->debug(
-                    'Queuing request: ' .
+                    "Queuing request: " .
                     str_replace(
                         ["\r\n", "\n"],
                         "\\n ",

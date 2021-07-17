@@ -6,5 +6,6 @@ namespace redmc\librestful\exceptions;
 
 use RuntimeException;
 
-class QueueShutdownException extends RuntimeException {
+class QueueShutdownException extends RuntimeException
+{
 }

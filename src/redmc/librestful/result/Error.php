@@ -1,8 +1,8 @@
 <?php
 
-namespace redmc\librestful;
+namespace redmc\librestful\result;
 
-class Error extends Result {
+class Error extends Result{
     public function __construct($error){
         parent::__construct(null, $error);
     }

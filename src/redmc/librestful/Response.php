@@ -6,29 +6,29 @@ namespace redmc\librestful;
 
 use pocketmine\utils\InternetRequestResult;
 
-class Response {
+class Response{
     protected InternetRequestResult $result;
     private float $ms;
 
-    public function __construct(InternetRequestResult $result, float $ms) {
+    public function __construct(InternetRequestResult $result, float $ms){
         $this->result = $result;
         $this->ms = $ms;
     }
 
-    public function result(): InternetRequestResult {
+    public function result(): InternetRequestResult{
         return $this->result;
     }
 
-    public function code(): int {
+    public function code(): int{
         return $this->result->getCode();
     }
 
-    public function body(): string {
+    public function body(): string{
         return $this->result->getBody();
     }
 
     /** @return string[][] */
-    public function headers(): array {
+    public function headers(): array{
         return $this->result->getHeaders();
     }
 

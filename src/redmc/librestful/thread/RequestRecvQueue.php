@@ -10,20 +10,20 @@ use function is_string;
 use function serialize;
 use function unserialize;
 
-class RequestRecvQueue extends Threaded {
-    public function publishResult(int $requestId, Response $result): void {
+class RequestRecvQueue extends Threaded{
+    public function publishResult(int $requestId, Response $result): void{
         $this[] = serialize([$requestId, $result]);
     }
 
-    public function publishError(int $requestId, \Exception $error) {
+    public function publishError(int $requestId, \Exception $error){
         $this[] = serialize([$requestId, $error]);
     }
 
-    public function fetchResult(&$requestId, &$result): bool {
+    public function fetchResult(&$requestId, &$result): bool{
         $row = $this->shift();
-        if (is_string($row)) {
+        if(is_string($row)){
             [$requestId, $result] = unserialize($row, [
-                'allowed_classes' => true
+                "allowed_classes" => true,
             ]);
             return true;
         }

@@ -1,8 +1,10 @@
 <?php
 
-namespace redmc\librestful;
+namespace redmc\librestful\result;
 
-class Result {
+use redmc\librestful\AsParams;
+
+class Result{
     protected $ok;
     protected $error;
 
@@ -11,21 +13,31 @@ class Result {
         $this->error = $error;
     }
 
-    public function match(?callable $ok, ?callable $error = null): void{
-        if ($this->error !== null) {
-            if ($error !== null) {
-                if ($this->error instanceof AsParams) {
-                    $ok(...$this->error->getValue());
-                    return;
-                }
-
-                $error($this->error);
+    /**
+     * @param \Closure|callable|null $ok
+     * @param \Closure|callable|null $error
+     */
+    public function match($ok, $error = null): void{
+        if($this->error !== null){
+            if($error === null){
+                return;
             }
+
+            if($this->error instanceof AsParams){
+                $ok(...$this->error->getValue());
+                return;
+            }
+
+            $error($this->error);
             return;
         }
 
-        if ($this->ok !== null) {
-            if ($this->ok instanceof AsParams) {
+        if($this->ok !== null){
+            if($ok === null){
+                return;
+            }
+
+            if($this->ok instanceof AsParams){
                 $ok(...$this->ok->getValue());
                 return;
             }
@@ -37,11 +49,11 @@ class Result {
         throw new \InvalidStateException("Tried match to null result.");
     }
 
-    public function okValue() {
+    public function okValue(){
         return $this->ok;
     }
 
-    public function errorValue() {
+    public function errorValue(){
         return $this->error;
     }
 
@@ -50,6 +62,6 @@ class Result {
     }
 
     public function invalid(): bool{
-        return ! $this->valid();
+        return !$this->valid();
     }
 }

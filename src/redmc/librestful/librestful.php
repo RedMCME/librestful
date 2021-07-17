@@ -8,7 +8,8 @@ use pocketmine\plugin\Plugin;
 use redmc\librestful\thread\ConnectorLayer;
 use redmc\librestful\thread\RequestThreadPool;
 
-final class librestful {
+final class librestful
+{
     public static function create(
         Plugin $plugin,
         string $baseUrl,

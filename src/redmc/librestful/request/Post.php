@@ -18,7 +18,12 @@ abstract class Post extends Request{
     }
 
     public function executeFn(): callable{
-        return static function (string $url, array $fields, int $timeout, array $headers): ?InternetRequestResult{
+        return static function (
+            string $url,
+            array $fields,
+            int $timeout,
+            array $headers
+        ): ?InternetRequestResult{
             $error = null;
             $result = Internet::postURL(
                 $url,
@@ -29,7 +34,7 @@ abstract class Post extends Request{
             );
 
             if($error !== null){
-                throw new RequestErrorException($error, $this);
+                throw new RequestErrorException($error);
             }
             return $result;
         };
@@ -42,7 +47,7 @@ abstract class Post extends Request{
     public function __serialize(): array{
         $data = parent::__serialize();
 
-        $data['fields'] = $this->fields;
+        $data["fields"] = $this->fields;
         return $data;
     }
 }
